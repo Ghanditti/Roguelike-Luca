@@ -28,21 +28,18 @@ function mobhp() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// classe giocatore e mob
+
+let mob = {
+    hp: Math.floor(Math.random() * (10 - 1 + 1)) + 1,
+    position: { x: 1, y: 1 },
+    alive: 1
+};
+
 let player = {
     hp: 10,
     position: { x: 0, y: 0 }
 };
 
-let mob = {
-    hp: mobhp(),
-    position: { x: 1, y: 1 }
-};
-
-
-// Funzioni
-
-// Mappa
 function renderMap() {
     let map = Array.from({ length: MAP_SIZE }, () => Array(MAP_SIZE).fill(EMPTY_CELL));
     
@@ -63,6 +60,7 @@ bot.onText(/\/map/, (msg) => {
 
 bot.onText(/\/move (.+)/, (msg, match) => {
     const direction = match[1].toLowerCase();
+    bot.sendMessage(msg.chat.id, renderMap())
 
     if (direction === 'nord') player.position.y += 1;
     if (direction === 'sud') player.position.y -= 1;
@@ -90,12 +88,17 @@ bot.onText(/\/status/, (msg) => {
 });
 
 bot.onText(/\/attack/, (msg) => {
+    //danni al mob
     mob.hp -= Math.floor(Math.random() * (max - min + 1)) + min
-    if(mob.hp <= 0) {
-        bot.sendMessage(msg.chat.id, "Attacchi Diddy, sconfiggendolo definitivamente!");
+    if(mob.hp > 0) {
+        bot.sendMessage(msg.chat.id, "Attacchi il pericoloso Diddy. Ora ha" + mob.hp + " hp!");
+    }
+    else if (mob.hp <= 0 && mob.alive === 1) {
+        bot.sendMessage(msg.chat.id, "Dai il colpo di grazia al pericolosissimo Diddy, che muore!");
+        mob.alive = 0
     }
     else {
-        bot.sendMessage(msg.chat.id, `Attacchi il pericoloso Diddy. Ora ha `+ mob.hp + " hp!");
+        bot.sendMessage(msg.chat.id, "Diddy è già morto!");
     }
     
 });
