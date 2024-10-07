@@ -6,19 +6,29 @@ const bot = new TelegramBot(token, { polling: true });
 bot.onText(/\/start/, (msg) => {
     bot.sendMessage(msg.chat.id, "Benvenuto nel roguelike di Luca!", {
         "reply_markup": {
-            "keyboard": [["/move Nord"], ["/move Ovest", "/status", "/move Est"], ["/move Sud"]]
+            "keyboard": [["/move Nord", ], ["/move Ovest", "/status", "/move Est"], ["/move Sud"]]
         }
     });
 });
 
+
+// Costanti roll
 const min = 1;
 const max = 10;
+
+// Costanti mappa
+const MAP_SIZE = 6; 
+const EMPTY_CELL = '⬜'; // Emoji celle vuote
+const PLAYER_ICON = '⚜️'; // Emoji giocatore
+const MOB_ICON = '🐉'; // Emoji troll per il mob
+
 
 // Funzione per generare la salute del mob
 function mobhp() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// classe giocatore e mob
 let player = {
     hp: 10,
     position: { x: 0, y: 0 }
@@ -28,6 +38,28 @@ let mob = {
     hp: mobhp(),
     position: { x: 1, y: 1 }
 };
+
+
+// Funzioni
+
+// Mappa
+function renderMap() {
+    let map = Array.from({ length: MAP_SIZE }, () => Array(MAP_SIZE).fill(EMPTY_CELL));
+    
+    // Posiziona il giocatore e il mob sulla mappa
+    map[player.position.y][player.position.x] = PLAYER_ICON;
+    map[mob.position.y][mob.position.x] = MOB_ICON;
+
+    return map.map(row => row.join('')).join('\n');
+}
+
+
+// Comandi 
+
+bot.onText(/\/map/, (msg) => {
+    bot.sendMessage(msg.chat.id, renderMap());
+});
+
 
 bot.onText(/\/move (.+)/, (msg, match) => {
     const direction = match[1].toLowerCase();
@@ -40,7 +72,11 @@ bot.onText(/\/move (.+)/, (msg, match) => {
     // Controllo se la posizione del player coincide con quella del mob
     if (player.position.x === mob.position.x && player.position.y === mob.position.y) {
         mob.hp = mobhp();
-        bot.sendMessage(msg.chat.id, `Ti sei mosso a ${direction}. Incontri un pericoloso Diddy selvatico con ` + mob.hp + " hp!");
+        bot.sendMessage(msg.chat.id, `Ti sei mosso a ${direction}. Incontri un pericoloso Diddy selvatico con ` + mob.hp + " hp!", {
+            "reply_markup": {
+                "keyboard": [["/attack", "/status"]]
+            }
+            });
     }
     else {
         bot.sendMessage(msg.chat.id, `Ti sei mosso a ${direction}. La tua nuova posizione è (${player.position.x}, ${player.position.y})`);
